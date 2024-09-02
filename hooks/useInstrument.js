@@ -61,5 +61,12 @@ export function useInstrument(instrumentName, octave = 3) {
     }
   };
 
-  return { playChord, playNote, startDrone, stopDrone };
+  return {
+    playChord,
+    playNote,
+    startDrone,
+    stopDrone,
+    setDroneVolume,
+    droneVolume,
+  };
 }

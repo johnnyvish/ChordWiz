@@ -22,7 +22,8 @@ export default function Home() {
   const [buttonColors, setButtonColors] = useState(Array(8).fill(""));
   const [dronePlaying, setDronePlaying] = useState(false);
 
-  const { playChord, startDrone, stopDrone } = useInstrument(instrumentName);
+  const { playChord, startDrone, stopDrone, droneVolume, setDroneVolume } =
+    useInstrument(instrumentName);
 
   useEffect(() => {
     if (round > 0) {
@@ -67,16 +68,23 @@ export default function Home() {
   };
 
   return (
-    <main className="flex flex-col items-center w-full gap-12">
-      <nav className="flex items-center w-full h-16 px-8 fixed">
-        <a href="/">
-          <button className="text-2xl font-bold">Chord Wiz</button>
-        </a>
-      </nav>
+    <main className="flex flex-col items-center w-full min-h-screen">
+      <a href="/">
+        <button className="text-5xl md:text-6xl font-bold mt-8">
+          Chord Wiz
+        </button>
+      </a>
 
-      <div className="flex flex-col justify-center items-center w-full min-h-screen">
+      {round === 0 && (
+        <img
+          src="https://mir-s3-cdn-cf.behance.net/project_modules/disp/c3392827878799.5636c23e95ef9.gif"
+          className="w-[240px]"
+        />
+      )}
+
+      <div className="flex flex-col justify-center items-center w-full">
         {round === 0 && (
-          <div className="flex flex-col justify-center items-center gap-8 w-64">
+          <div className="flex flex-col justify-center items-center gap-8 w-[80%]">
             <DropdownSelection
               options={instruments.map((inst) => ({
                 value: inst,
@@ -101,12 +109,17 @@ export default function Home() {
               title="Select a mode"
             />
 
-            <button onClick={() => setRound(round + 1)}>Begin</button>
+            <button
+              onClick={() => setRound(round + 1)}
+              className="text-4xl rounded-2xl py-2 bg-white shadow-sm shadow-gray-400 w-full bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400 inline-block text-transparent bg-clip-text"
+            >
+              Begin
+            </button>
           </div>
         )}
 
         {round > 0 && (
-          <div className="flex flex-col justify-center items-center">
+          <div className="flex flex-col justify-center items-center mt-12 w-[80%]">
             <div className="flex justify-between items-center w-full">
               <button onClick={() => setRound(0)}>
                 <FaArrowLeft />
@@ -120,7 +133,7 @@ export default function Home() {
               <IoIosMusicalNotes />
               <p>Hear again</p>
             </button>
-            <div className="grid grid-cols-4 gap-4 mt-8">
+            <div className="grid grid-cols-4 gap-4 mt-8 w-full">
               {[1, 2, 3, 4, 5, 6, 7, 1].map((degree, index) => (
                 <button
                   key={degree}
@@ -135,12 +148,37 @@ export default function Home() {
               ))}
             </div>
 
-            <button
-              onClick={() => setDronePlaying(!dronePlaying)}
-              className="mt-8"
-            >
-              {dronePlaying ? "Pause Drone" : "Play Drone"}
-            </button>
+            <div className="flex flex-col justify-start items-center w-full h-24 mt-12 gap-8">
+              <button onClick={() => setDronePlaying(!dronePlaying)}>
+                {dronePlaying ? "Pause Drone" : "Play Drone"}
+              </button>
+
+              {!dronePlaying && (
+                <div className="w-full">
+                  <label
+                    htmlFor="drone-volume"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Drone Volume
+                  </label>
+                  <input
+                    type="range"
+                    id="drone-volume"
+                    min="-60"
+                    max="5"
+                    step="1"
+                    value={droneVolume}
+                    onChange={(e) => {
+                      setDroneVolume(Number(e.target.value));
+                    }}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <div className="text-sm text-gray-500 mt-1">
+                    {droneVolume} dB
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
