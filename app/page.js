@@ -70,7 +70,7 @@ export default function Home() {
   return (
     <main className="flex flex-col items-center w-full min-h-screen">
       <a href="/">
-        <button className="text-5xl md:text-6xl font-bold mt-8">
+        <button className="text-5xl md:text-6xl font-bold mt-8 text-gray-800">
           Chord Wiz
         </button>
       </a>
@@ -84,7 +84,7 @@ export default function Home() {
 
       <div className="flex flex-col justify-center items-center w-full">
         {round === 0 && (
-          <div className="flex flex-col justify-center items-center gap-8 w-[80%]">
+          <div className="flex flex-col justify-center items-center gap-8 w-[80%] md:w-[40%]">
             <DropdownSelection
               options={instruments.map((inst) => ({
                 value: inst,
@@ -111,21 +111,25 @@ export default function Home() {
 
             <button
               onClick={() => setRound(round + 1)}
-              className="text-4xl rounded-2xl py-2 bg-white shadow-sm shadow-gray-400 w-full bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400 inline-block text-transparent bg-clip-text"
+              className="w-full bg-gray-800 flex justify-center items-center pb-4 pt-2 rounded-xl"
             >
-              Begin
+              <p className="text-4xl text-white">Begin</p>
             </button>
           </div>
         )}
 
         {round > 0 && (
-          <div className="flex flex-col justify-center items-center mt-12 w-[80%]">
+          <div className="flex flex-col justify-center items-center mt-12 w-[80%] md:w-[40%]">
             <div className="flex justify-between items-center w-full">
               <button onClick={() => setRound(0)}>
                 <FaArrowLeft />
               </button>
-              <h1>Round: {round}</h1>
+              <h2>
+                {tonic} {mode}
+              </h2>
+              <h2>Round: {round}</h2>
             </div>
+
             <button
               onClick={() => playChord(currentChord.notes)}
               className="mt-8 rounded-2xl w-full py-2 bg-white shadow-sm shadow-gray-400 flex justify-center items-center gap-4"
@@ -133,6 +137,7 @@ export default function Home() {
               <IoIosMusicalNotes />
               <p>Hear again</p>
             </button>
+
             <div className="grid grid-cols-4 gap-4 mt-8 w-full">
               {[1, 2, 3, 4, 5, 6, 7, 1].map((degree, index) => (
                 <button
@@ -154,7 +159,7 @@ export default function Home() {
               </button>
 
               {!dronePlaying && (
-                <div className="w-full">
+                <div className="w-full pb-16">
                   <label
                     htmlFor="drone-volume"
                     className="block text-sm font-medium text-gray-700 mb-1"
