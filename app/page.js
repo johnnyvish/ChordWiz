@@ -1,112 +1,148 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
+import { instruments, tonics, modes } from "@/Constants";
+import { getScaleNotes, getRandomChord } from "@/Utils";
+import { useInstrument } from "@/hooks/useInstrument";
+import DropdownSelection from "@/components/DropdownSelection";
+import { FaArrowLeft } from "react-icons/fa6";
+import { IoIosMusicalNotes } from "react-icons/io";
 
 export default function Home() {
+  const [mode, setMode] = useState("Major");
+  const [tonic, setTonic] = useState("C");
+  const [currentChord, setCurrentChord] = useState({
+    notes: ["C", "E", "G"],
+    degree: 1,
+    quality: "Major",
+  });
+
+  const [round, setRound] = useState(0);
+  const [instrumentName, setInstrumentName] = useState("bright_acoustic_piano");
+  const [buttonColors, setButtonColors] = useState(Array(8).fill(""));
+  const [dronePlaying, setDronePlaying] = useState(false);
+
+  const { playChord, startDrone, stopDrone } = useInstrument(instrumentName);
+
+  useEffect(() => {
+    if (round > 0) {
+      const scaleNotes = getScaleNotes(tonic, mode);
+      const { chordNotes, chordDegree, chordQuality } = getRandomChord(
+        scaleNotes,
+        mode
+      );
+
+      setCurrentChord({
+        notes: chordNotes,
+        degree: chordDegree,
+        quality: chordQuality,
+      });
+
+      playChord(chordNotes);
+      setButtonColors(Array(8).fill(""));
+    }
+  }, [round, mode, tonic]);
+
+  useEffect(() => {
+    if (dronePlaying && round > 0) {
+      startDrone(tonic);
+    } else {
+      stopDrone();
+      setDronePlaying(false);
+    }
+  }, [dronePlaying, tonic, round]);
+
+  const handleGuess = (guess) => {
+    const newColors = [...buttonColors];
+    if (guess === currentChord.degree) {
+      newColors[guess - 1] = "bg-green-500 text-white";
+      setButtonColors(newColors);
+      setTimeout(() => {
+        setRound(round + 1);
+      }, 1000);
+    } else {
+      newColors[guess - 1] = "bg-red-500 text-white";
+      setButtonColors(newColors);
+    }
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
+    <main className="flex flex-col items-center w-full gap-12">
+      <nav className="flex items-center w-full h-16 px-8 fixed">
+        <a href="/">
+          <button className="text-2xl font-bold">Chord Wiz</button>
+        </a>
+      </nav>
+
+      <div className="flex flex-col justify-center items-center w-full min-h-screen">
+        {round === 0 && (
+          <div className="flex flex-col justify-center items-center gap-8 w-64">
+            <DropdownSelection
+              options={instruments.map((inst) => ({
+                value: inst,
+                label: inst,
+              }))}
+              value={instrumentName}
+              onChange={setInstrumentName}
+              title="Select an instrument"
             />
-          </a>
-        </div>
-      </div>
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+            <DropdownSelection
+              options={tonics.map((t) => ({ value: t, label: t }))}
+              value={tonic}
+              onChange={setTonic}
+              title="Select a tonic"
+            />
 
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+            <DropdownSelection
+              options={modes.map((m) => ({ value: m, label: m }))}
+              value={mode}
+              onChange={setMode}
+              title="Select a mode"
+            />
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+            <button onClick={() => setRound(round + 1)}>Begin</button>
+          </div>
+        )}
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
+        {round > 0 && (
+          <div className="flex flex-col justify-center items-center">
+            <div className="flex justify-between items-center w-full">
+              <button onClick={() => setRound(0)}>
+                <FaArrowLeft />
+              </button>
+              <h1>Round: {round}</h1>
+            </div>
+            <button
+              onClick={() => playChord(currentChord.notes)}
+              className="mt-8 rounded-2xl w-full py-2 bg-white shadow-sm shadow-gray-400 flex justify-center items-center gap-4"
+            >
+              <IoIosMusicalNotes />
+              <p>Hear again</p>
+            </button>
+            <div className="grid grid-cols-4 gap-4 mt-8">
+              {[1, 2, 3, 4, 5, 6, 7, 1].map((degree, index) => (
+                <button
+                  key={degree}
+                  className={`rounded-2xl py-2 px-4 shadow-sm shadow-gray-400 ${
+                    buttonColors[index] || "bg-white hover:shadow-gray-800"
+                  }`}
+                  onClick={() => handleGuess(degree)}
+                  style={{ transition: "background-color 0.3s" }}
+                >
+                  <h1>{degree}</h1>
+                </button>
+              ))}
+            </div>
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+            <button
+              onClick={() => setDronePlaying(!dronePlaying)}
+              className="mt-8"
+            >
+              {dronePlaying ? "Pause Drone" : "Play Drone"}
+            </button>
+          </div>
+        )}
       </div>
     </main>
   );
