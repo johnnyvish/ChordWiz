@@ -26,6 +26,8 @@ export default function Home() {
   const [showLoading, setShowLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const loadingBarRef = useRef(null);
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [videoId, setVideoId] = useState("");
 
   const {
     playChord,
@@ -114,6 +116,24 @@ export default function Home() {
       setButtonColors(newColors);
     }
   };
+
+  const handleYoutubeUrlSubmit = (e) => {
+    e.preventDefault();
+    const videoId = extractVideoId(youtubeUrl);
+    if (videoId) {
+      setVideoId(videoId);
+    } else {
+      alert("Invalid YouTube URL");
+    }
+  };
+
+  const extractVideoId = (url) => {
+    const regex =
+      /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=)?(.+)/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+  };
+
   return (
     <main className="flex flex-col items-center justify-center w-full min-h-screen">
       {showLoading ? (
@@ -224,7 +244,7 @@ export default function Home() {
                   ))}
                 </div>
 
-                <div className="flex flex-col justify-start items-center w-full h-24 mt-12 gap-8">
+                {/* <div className="flex flex-col justify-start items-center w-full h-24 mt-12 gap-8">
                   <button onClick={() => setDronePlaying(!dronePlaying)}>
                     {dronePlaying ? "Pause Drone" : "Play Drone"}
                   </button>
@@ -254,7 +274,47 @@ export default function Home() {
                       </div>
                     </div>
                   )}
-                </div>
+                </div> */}
+                <form
+                  onSubmit={handleYoutubeUrlSubmit}
+                  className="w-full mt-10 md:mt-16"
+                >
+                  <label
+                    htmlFor="youtube-url"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Enter YouTube URL
+                  </label>
+                  <div className="flex">
+                    <input
+                      type="text"
+                      id="youtube-url"
+                      value={youtubeUrl}
+                      onChange={(e) => setYoutubeUrl(e.target.value)}
+                      className="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none text-sm"
+                      placeholder="https://www.youtube.com/watch?v=..."
+                    />
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-gray-800 text-white rounded-r-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-800"
+                    >
+                      Load
+                    </button>
+                  </div>
+                </form>
+                {videoId && (
+                  <div className="w-full mt-4">
+                    <iframe
+                      width="100%"
+                      height="315"
+                      src={`https://www.youtube.com/embed/${videoId}`}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="rounded-md"
+                    ></iframe>
+                  </div>
+                )}
               </div>
             )}
           </div>

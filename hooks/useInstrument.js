@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Soundfont from "soundfont-player";
+import * as Tone from "tone";
 
 export function useInstrument(instrumentName, octave = 3) {
   const [instrument, setInstrument] = useState(null);
-  const [loadingInstrument, setLoadingInstrument] = useState(false);
+  const [droneInstrument, setDroneInstrument] = useState(null);
   const [droneVolume, setDroneVolume] = useState(-28); // Default volume in dB
-  const droneAudioRef = useRef(null);
+  const [loadingInstrument, setLoadingInstrument] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -17,6 +18,22 @@ export function useInstrument(instrumentName, octave = 3) {
       });
     }
   }, [instrumentName]);
+
+  useEffect(() => {
+    const volumeNode = new Tone.Volume(droneVolume).toDestination();
+    const newDroneInstrument = new Tone.Synth({
+      oscillator: { type: "sine" },
+      envelope: { attack: 1, decay: 0, sustain: 1, release: 1 },
+    }).connect(volumeNode);
+
+    setDroneInstrument(newDroneInstrument);
+
+    return () => {
+      if (droneInstrument) {
+        droneInstrument.dispose();
+      }
+    };
+  }, [droneVolume]);
 
   const playChord = (notes) => {
     notes.forEach((note) => {
@@ -34,29 +51,18 @@ export function useInstrument(instrumentName, octave = 3) {
   };
 
   const startDrone = (tonic) => {
-    if (droneAudioRef.current) {
-      droneAudioRef.current.pause();
+    if (droneInstrument) {
+      droneInstrument.triggerAttack(
+        Tone.Frequency(tonic + octave).toFrequency()
+      );
     }
-
-    const audio = new Audio(`/drones/${tonic}-drone.mp3`);
-    audio.loop = true;
-    audio.volume = Math.pow(10, droneVolume / 20); // Convert dB to linear scale
-    audio.play();
-    droneAudioRef.current = audio;
   };
 
   const stopDrone = () => {
-    if (droneAudioRef.current) {
-      droneAudioRef.current.pause();
-      droneAudioRef.current = null;
+    if (droneInstrument) {
+      droneInstrument.triggerRelease();
     }
   };
-
-  useEffect(() => {
-    if (droneAudioRef.current) {
-      droneAudioRef.current.volume = Math.pow(10, droneVolume / 20);
-    }
-  }, [droneVolume]);
 
   return {
     playChord,
