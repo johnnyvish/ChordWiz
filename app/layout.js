@@ -9,7 +9,7 @@ const silkscreen = Silkscreen({
 
 export const metadata = {
   title: "Chord Wiz",
-  description: "Master chord recognition with interactive ear training",
+  description: "Functional chord recognition",
 };
 
 export default function RootLayout({ children }) {

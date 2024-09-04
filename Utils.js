@@ -1,50 +1,53 @@
-import { notes, scaleMajorIntervals, scaleMinorIntervals } from "./Constants";
+import { tonics, notes } from "./Constants";
 
-// calculate the scale notes from the tonic and the mode
-export const getScaleNotes = (tonic, mode) => {
-  const scale = mode === "Major" ? scaleMajorIntervals : scaleMinorIntervals;
-  const tonicIndex = notes.indexOf(tonic);
+export const getRandomChord = (tonic, mode) => {
+  const majorIntervals = [0, 2, 4, 5, 7, 9, 11];
+  const minorIntervals = [0, 2, 3, 5, 7, 8, 10];
+
+  // construct the scale based on tonic and mode
+  const scale = mode === "Major" ? majorIntervals : minorIntervals;
   const scaleNotes = scale.map((interval) => {
-    const noteIndex = (tonicIndex + interval) % notes.length;
+    const noteIndex = (tonics.indexOf(tonic) + interval) % notes.length;
     return notes[noteIndex];
   });
 
-  return scaleNotes;
-};
+  // randomly select a chord root from the scale
+  const randomRootIndex = Math.floor(Math.random() * scaleNotes.length);
+  const chordRoot = scaleNotes[randomRootIndex];
 
-// get a random chord from the current scale notes
-export const getRandomChord = (currentScaleNotes, mode) => {
-  const randomIndex = Math.floor(Math.random() * currentScaleNotes.length);
-  const chordNotes = [
-    currentScaleNotes[randomIndex],
-    currentScaleNotes[(randomIndex + 2) % currentScaleNotes.length],
-    currentScaleNotes[(randomIndex + 4) % currentScaleNotes.length],
+  // construct a triad chord
+  let chordNotes = [
+    chordRoot,
+    scaleNotes[(randomRootIndex + 2) % scaleNotes.length],
+    scaleNotes[(randomRootIndex + 4) % scaleNotes.length],
   ];
 
-  const chordDegree = randomIndex + 1;
-  const chordQuality = getChordQuality(chordDegree, mode);
+  // determine the chord degree number
+  const chordDegree = randomRootIndex + 1;
+
+  // determine if the chord should be inverted (33% chance)
+  const inversion = Math.floor(Math.random() * 3); // 0: root position, 1: first inversion, 2: second inversion
+
+  // determine the octave numbers of the chord notes
+  let octaves = [3, 3, 3];
+
+  if (chordDegree >= 6) octaves[1] = 4;
+  if (chordDegree >= 4) octaves[2] = 4;
+
+  if (inversion === 1) {
+    octaves[1] -= 1;
+    octaves[2] -= 1;
+  }
+
+  if (inversion === 2) {
+    octaves[2] -= 1;
+  }
+
+  // combine notes with octave numbers
+  chordNotes = chordNotes.map((note, index) => `${note}${octaves[index]}`);
 
   return {
     chordNotes,
     chordDegree,
-    chordQuality,
   };
-};
-
-// get the quality of a chord from its degree
-export const getChordQuality = (chordDegree, mode) => {
-  if (mode === "Major") {
-    return [1, 4, 5].includes(chordDegree)
-      ? "Major"
-      : [2, 3, 6].includes(chordDegree)
-      ? "Minor"
-      : "Diminished";
-  } else {
-    // Minor mode
-    return [3, 6, 7].includes(chordDegree)
-      ? "Major"
-      : [1, 4, 5].includes(chordDegree)
-      ? "Minor"
-      : "Diminished";
-  }
 };

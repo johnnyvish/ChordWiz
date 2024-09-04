@@ -1,11 +1,8 @@
 import { useState, useEffect } from "react";
 import Soundfont from "soundfont-player";
-import * as Tone from "tone";
 
-export function useInstrument(instrumentName, octave = 3) {
+export function useInstrument(instrumentName) {
   const [instrument, setInstrument] = useState(null);
-  const [droneInstrument, setDroneInstrument] = useState(null);
-  const [droneVolume, setDroneVolume] = useState(-28); // Default volume in dB
   const [loadingInstrument, setLoadingInstrument] = useState(false);
 
   useEffect(() => {
@@ -19,25 +16,9 @@ export function useInstrument(instrumentName, octave = 3) {
     }
   }, [instrumentName]);
 
-  useEffect(() => {
-    const volumeNode = new Tone.Volume(droneVolume).toDestination();
-    const newDroneInstrument = new Tone.Synth({
-      oscillator: { type: "sine" },
-      envelope: { attack: 1, decay: 0, sustain: 1, release: 1 },
-    }).connect(volumeNode);
-
-    setDroneInstrument(newDroneInstrument);
-
-    return () => {
-      if (droneInstrument) {
-        droneInstrument.dispose();
-      }
-    };
-  }, [droneVolume]);
-
   const playChord = (notes) => {
     notes.forEach((note) => {
-      playNote(note + octave);
+      playNote(note);
     });
   };
 
@@ -50,27 +31,9 @@ export function useInstrument(instrumentName, octave = 3) {
     }
   };
 
-  const startDrone = (tonic) => {
-    if (droneInstrument) {
-      droneInstrument.triggerAttack(
-        Tone.Frequency(tonic + octave).toFrequency()
-      );
-    }
-  };
-
-  const stopDrone = () => {
-    if (droneInstrument) {
-      droneInstrument.triggerRelease();
-    }
-  };
-
   return {
     playChord,
     playNote,
-    startDrone,
-    stopDrone,
-    setDroneVolume,
     loadingInstrument,
-    droneVolume,
   };
 }

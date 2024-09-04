@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { instruments, tonics, modes } from "@/Constants";
-import { getScaleNotes, getRandomChord } from "@/Utils";
+import { getRandomChord } from "@/Utils";
 import { useInstrument } from "@/hooks/useInstrument";
 import DropdownSelection from "@/components/DropdownSelection";
 import { FaArrowLeft } from "react-icons/fa6";
@@ -13,30 +13,20 @@ export default function Home() {
   const [mode, setMode] = useState("Major");
   const [tonic, setTonic] = useState("C");
   const [currentChord, setCurrentChord] = useState({
-    notes: ["C", "E", "G"],
+    notes: ["C4", "E4", "G4"],
     degree: 1,
-    quality: "Major",
   });
 
   const [round, setRound] = useState(0);
-  const [instrumentName, setInstrumentName] = useState("bright_acoustic_piano");
+  const [instrumentName, setInstrumentName] = useState("acoustic_grand_piano");
   const [buttonColors, setButtonColors] = useState(Array(8).fill(""));
-  const [dronePlaying, setDronePlaying] = useState(false);
   const [storedPreferencesLoaded, setStoredPreferencesLoaded] = useState(false);
   const [showLoading, setShowLoading] = useState(true);
-  const [loadingProgress, setLoadingProgress] = useState(0);
   const loadingBarRef = useRef(null);
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [videoId, setVideoId] = useState("");
 
-  const {
-    playChord,
-    startDrone,
-    stopDrone,
-    droneVolume,
-    setDroneVolume,
-    loadingInstrument,
-  } = useInstrument(instrumentName);
+  const { playChord, loadingInstrument } = useInstrument(instrumentName);
 
   useEffect(() => {
     if (showLoading && loadingBarRef.current) {
@@ -44,10 +34,6 @@ export default function Home() {
         width: "100%",
         duration: 3,
         ease: "power4.inOut",
-        onUpdate: () => {
-          const progress = gsap.getProperty(loadingBarRef.current, "width");
-          setLoadingProgress(Math.round(progress));
-        },
         onComplete: () => setShowLoading(false),
       });
     }
@@ -77,31 +63,17 @@ export default function Home() {
 
   useEffect(() => {
     if (round > 0) {
-      const scaleNotes = getScaleNotes(tonic, mode);
-      const { chordNotes, chordDegree, chordQuality } = getRandomChord(
-        scaleNotes,
-        mode
-      );
+      const { chordNotes, chordDegree } = getRandomChord(tonic, mode);
 
       setCurrentChord({
         notes: chordNotes,
         degree: chordDegree,
-        quality: chordQuality,
       });
 
       playChord(chordNotes);
       setButtonColors(Array(8).fill(""));
     }
   }, [round, mode, tonic]);
-
-  useEffect(() => {
-    if (dronePlaying && round > 0) {
-      startDrone(tonic);
-    } else {
-      stopDrone();
-      setDronePlaying(false);
-    }
-  }, [dronePlaying, tonic, round]);
 
   const handleGuess = (guess) => {
     const newColors = [...buttonColors];
@@ -148,9 +120,6 @@ export default function Home() {
                 className="h-full bg-gray-800 rounded-md"
                 style={{ width: "0%" }}
               />
-            </div>
-            <div className="text-gray-800 font-bold w-8 md:text-3xl">
-              {loadingProgress}%
             </div>
           </div>
         </div>
@@ -232,7 +201,7 @@ export default function Home() {
                 <div className="grid grid-cols-4 gap-4 mt-8 w-full">
                   {[1, 2, 3, 4, 5, 6, 7, 1].map((degree, index) => (
                     <button
-                      key={degree}
+                      key={index}
                       className={`rounded-2xl py-2 px-4 shadow-sm shadow-gray-400 ${
                         buttonColors[index] || "bg-white hover:shadow-gray-800"
                       }`}
@@ -244,37 +213,6 @@ export default function Home() {
                   ))}
                 </div>
 
-                {/* <div className="flex flex-col justify-start items-center w-full h-24 mt-12 gap-8">
-                  <button onClick={() => setDronePlaying(!dronePlaying)}>
-                    {dronePlaying ? "Pause Drone" : "Play Drone"}
-                  </button>
-
-                  {!dronePlaying && (
-                    <div className="w-full pb-16">
-                      <label
-                        htmlFor="drone-volume"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Drone Volume
-                      </label>
-                      <input
-                        type="range"
-                        id="drone-volume"
-                        min="-60"
-                        max="5"
-                        step="1"
-                        value={droneVolume}
-                        onChange={(e) => {
-                          setDroneVolume(Number(e.target.value));
-                        }}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                      />
-                      <div className="text-sm text-gray-500 mt-1">
-                        {droneVolume} dB
-                      </div>
-                    </div>
-                  )}
-                </div> */}
                 <form
                   onSubmit={handleYoutubeUrlSubmit}
                   className="w-full mt-10 md:mt-16"
@@ -283,7 +221,7 @@ export default function Home() {
                     htmlFor="youtube-url"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Enter YouTube URL
+                    YouTube URL
                   </label>
                   <div className="flex">
                     <input
@@ -292,7 +230,7 @@ export default function Home() {
                       value={youtubeUrl}
                       onChange={(e) => setYoutubeUrl(e.target.value)}
                       className="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none text-sm"
-                      placeholder="https://www.youtube.com/watch?v=..."
+                      placeholder="Paste url here"
                     />
                     <button
                       type="submit"
@@ -308,7 +246,6 @@ export default function Home() {
                       width="100%"
                       height="315"
                       src={`https://www.youtube.com/embed/${videoId}`}
-                      frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       className="rounded-md"
